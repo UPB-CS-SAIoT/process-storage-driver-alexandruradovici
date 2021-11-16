@@ -566,10 +566,13 @@ pub unsafe fn main() {
             .finalize(());
     let _ = process_console.start();
 
-    let print_grant = board_kernel.create_grant(drivers::print::DRIVER_NUM,
-        &memory_allocation_capability);
+    let print_grant =
+        board_kernel.create_grant(drivers::print::DRIVER_NUM, &memory_allocation_capability);
 
-    let print = static_init!(drivers::print::Print, drivers::print::Print::new(print_grant));
+    let print = static_init!(
+        drivers::print::Print,
+        drivers::print::Print::new(print_grant)
+    );
 
     //--------------------------------------------------------------------------
     // FINAL SETUP AND BOARD BOOT
