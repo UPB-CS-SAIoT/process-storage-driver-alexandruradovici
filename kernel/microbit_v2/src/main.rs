@@ -109,6 +109,7 @@ pub struct MicroBit {
     >,
     app_flash: &'static capsules::app_flash_driver::AppFlash<'static>,
     sound_pressure: &'static capsules::sound_pressure::SoundPressureSensor<'static>,
+    print: &'static drivers::print::Print,
 
     scheduler: &'static RoundRobinSched<'static>,
     systick: cortexm4::systick::SysTick,
@@ -134,6 +135,7 @@ impl SyscallDriverLookup for MicroBit {
             capsules::buzzer_driver::DRIVER_NUM => f(Some(self.buzzer)),
             capsules::app_flash_driver::DRIVER_NUM => f(Some(self.app_flash)),
             capsules::sound_pressure::DRIVER_NUM => f(Some(self.sound_pressure)),
+            drivers::print::DRIVER_NUM => f(Some(self.print)),
             kernel::ipc::DRIVER_NUM => f(Some(&self.ipc)),
             _ => f(None),
         }
@@ -564,6 +566,11 @@ pub unsafe fn main() {
             .finalize(());
     let _ = process_console.start();
 
+    let print_grant = board_kernel.create_grant(drivers::print::DRIVER_NUM,
+        &memory_allocation_capability);
+
+    let print = static_init!(drivers::print::Print, drivers::print::Print::new(print_grant));
+
     //--------------------------------------------------------------------------
     // FINAL SETUP AND BOARD BOOT
     //--------------------------------------------------------------------------
@@ -594,6 +601,7 @@ pub unsafe fn main() {
         adc: adc_syscall,
         alarm,
         app_flash,
+        print,
         ipc: kernel::ipc::IPC::new(
             board_kernel,
             kernel::ipc::DRIVER_NUM,
